@@ -1,4 +1,5 @@
 # nvim
+nvim 플러그인 설정
 
 ## 설정 파일 위치
 ~/.config/nvim
