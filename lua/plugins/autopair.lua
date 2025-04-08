@@ -2,7 +2,7 @@ return {
   {
     "windwp/nvim-autopairs",
     event = "InsertEnter",
-    osopts = {},
+    opts = {},
   },
   {
     "windwp/nvim-ts-autotag",
@@ -15,4 +15,3 @@ return {
     end,
   },
 }
-

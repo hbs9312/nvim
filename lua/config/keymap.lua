@@ -3,9 +3,9 @@ for _, mode in ipairs(modes) do
   vim.keymap.set(mode, "<Space>", "<Nop>", { silent = true })
 end
 
-vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc="파일 저장" })
+vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "파일 저장" })
 vim.keymap.set("n", "<leader>q", "<cmd>qa!<CR>", { desc = "전체 종료" })
-vim.keymap.set("n", "<leader>c", "<cmd>q<CR>", { desc = "윈도우 종료"})
+vim.keymap.set("n", "<leader>c", "<cmd>q<CR>", { desc = "윈도우 종료" })
 -- 윈도우 이동
 vim.keymap.set("n", "<leader>h", "<C-w>h")
 vim.keymap.set("n", "<leader>j", "<C-w>j")
@@ -24,9 +24,14 @@ vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help ta
 vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Diagnostics (Trouble)" })
 vim.keymap.set("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Diagnostics (Trouble)" })
 vim.keymap.set("n", "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", { desc = "Symbols (Trouble)" })
-vim.keymap.set("n", "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", { desc = "LSP Denifitions / references / ... (Trouble)" })
+vim.keymap.set("n", "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+  { desc = "LSP Denifitions / references / ... (Trouble)" })
 vim.keymap.set("n", "<leader>xL", "<cmd>Trouble loclist toggle<cr>", { desc = "Location List (Trouble)" })
 vim.keymap.set("n", "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix List (Trouble)" })
+
+vim.keymap.set("n", "<leader>d", function()
+  vim.diagnostic.open_float(nil, { focus = false, border = "rounded" })
+end, { desc = "Show diagnostics in floating window" })
 
 vim.keymap.set("n", "<leader>e", function()
   local neotree_open = false
