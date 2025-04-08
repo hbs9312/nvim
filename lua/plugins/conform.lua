@@ -1,4 +1,16 @@
 return {
   "stevearc/conform.nvim",
-  opts = {}
+  opts = {
+    formatters_by_ft = {
+      javascript = { "prettierd" },
+      typescript = { "prettierd" },
+      typescriptreact = { "prettierd" },
+      json = { " prettierd" },
+      lua = { "stylua" },
+    },
+    format_on_save = {
+      lsp_fallback = true,
+      timeout_ms = 500,
+    }
+  }
 }
