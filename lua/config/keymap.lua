@@ -15,11 +15,25 @@ vim.keymap.set("n", "<leader>l", "<C-w>l")
 vim.keymap.set("n", "<leader>s", "<C-w>s")
 vim.keymap.set("n", "<leader>v", "<C-w>v")
 -- telescope
-local builtin = require("telescope.builtin")
-vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Telescope find files" })
-vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Telescope live grep" })
-vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
-vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help tags" })
+local telescope = require("telescope.builtin")
+vim.keymap.set("n", "<leader>ff", telescope.find_files, { desc = "Telescope find files" })
+vim.keymap.set("n", "<leader>fg", telescope.live_grep, { desc = "Telescope live grep" })
+vim.keymap.set("n", "<leader>fb", telescope.buffers, { desc = "Telescope buffers" })
+vim.keymap.set("n", "<leader>fh", telescope.help_tags, { desc = "Telescope help tags" })
+vim.keymap.set("n", "<leader>fr", function()
+  local cwd = vim.loop.cwd()
+
+  telescope.oldfiles({
+    cwd = cwd,
+    only_cwd = true,
+    prompt_title = "Recent Project Files",
+  })
+end, { desc = "Find recent files (project only)" })
+
+vim.keymap.set("n", "<leader>gc", require("telescope.builtin").git_commits, { desc = "Git Commits" })
+vim.keymap.set("n", "<leader>gb", require("telescope.builtin").git_bcommits, { desc = "Git Blame Commits" })
+
+
 -- tourble.nvim
 vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Diagnostics (Trouble)" })
 vim.keymap.set("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Diagnostics (Trouble)" })
