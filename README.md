@@ -10,6 +10,9 @@ nvim 플러그인 설정
 ## 루트 폴더 경로
 ~/.config/nvim/lua
 
+## 플러그인 매니저
+lazy.nvim
+
 ## 플러그인
 - windwp/nvim-autopairs
 - willamboman/mason-lspconfig : lsp-install
@@ -19,3 +22,6 @@ nvim 플러그인 설정
 - nvim-treesitter/nvim-treesitter : 코드 하이라이팅
 - folke/trouble.nvim : diagnostics
 - stevearc/conform.nvim : code formatter
+- nvimdev/lspsaga : LSP UI plugin
+- windwp/nvim-ts-autotag : html 태그 등 닫는 태그 자동완성
+- mfussenegger/nvim-lint : Linting 
