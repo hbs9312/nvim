@@ -1,6 +1,6 @@
 local modes = { "n", "v", "x", "s", "o", "t" }
 for _, mode in ipairs(modes) do
-  vim.keymap.set(mode, "<Space>", "<Nop>", { silent = true })
+	vim.keymap.set(mode, "<Space>", "<Nop>", { silent = true })
 end
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "파일 저장" })
@@ -21,13 +21,13 @@ vim.keymap.set("n", "<leader>fg", telescope.live_grep, { desc = "Telescope live 
 vim.keymap.set("n", "<leader>fb", telescope.buffers, { desc = "Telescope buffers" })
 vim.keymap.set("n", "<leader>fh", telescope.help_tags, { desc = "Telescope help tags" })
 vim.keymap.set("n", "<leader>fr", function()
-  local cwd = vim.loop.cwd()
+	local cwd = vim.loop.cwd()
 
-  telescope.oldfiles({
-    cwd = cwd,
-    only_cwd = true,
-    prompt_title = "Recent Project Files",
-  })
+	telescope.oldfiles({
+		cwd = cwd,
+		only_cwd = true,
+		prompt_title = "Recent Project Files",
+	})
 end, { desc = "Find recent files (project only)" })
 
 vim.keymap.set("n", "<leader>gc", require("telescope.builtin").git_commits, { desc = "Git Commits" })
@@ -39,13 +39,13 @@ vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc 
 vim.keymap.set("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Diagnostics (Trouble)" })
 vim.keymap.set("n", "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", { desc = "Symbols (Trouble)" })
 vim.keymap.set("n", "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
-  { desc = "LSP Denifitions / references / ... (Trouble)" })
+	{ desc = "LSP Denifitions / references / ... (Trouble)" })
 vim.keymap.set("n", "<leader>xL", "<cmd>Trouble loclist toggle<cr>", { desc = "Location List (Trouble)" })
 vim.keymap.set("n", "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix List (Trouble)" })
 
 -- show Diagnostics
 vim.keymap.set("n", "<leader>d", function()
-  vim.diagnostic.open_float(nil, { focus = false, border = "rounded" })
+	vim.diagnostic.open_float(nil, { focus = false, border = "rounded" })
 end, { desc = "Show diagnostics in floating window" })
 
 -- lspsaga
@@ -55,20 +55,22 @@ vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = tru
 
 -- neotree
 vim.keymap.set("n", "<leader>e", function()
-  local neotree_open = false
+	local neotree_win = nil
 
-  -- 모든 윈도우를 확인해서 Neotree가 열려 있는지 체크
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))
-    if bufname:match("neo%-tree") then
-      neotree_open = true
-      break
-    end
-  end
+	-- 모든 윈도우를 확인해서 Neotree가 열려 있는지 체크
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		local ft = vim.api.nvim_buf_get_option(buf, "filetype")
+		if ft == "neo-tree" then
+			neotree_win = win
+		end
+	end
 
-  if neotree_open then
-    vim.cmd("Neotree close")
-  else
-    vim.cmd("Neotree toggle")
-  end
+	if neotree_win == nil then
+		vim.cmd("Neotree toggle")
+	elseif neotree_win == vim.api.nvim_get_current_win() then
+		vim.cmd("Neotree toggle")
+	else
+		vim.api.nvim_set_current_win(neotree_win)
+	end
 end, { desc = "Neotree 열고/닫기 토글" })
