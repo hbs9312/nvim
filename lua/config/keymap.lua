@@ -5,7 +5,7 @@ end
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "파일 저장" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qa!<CR>", { desc = "전체 종료" })
-vim.keymap.set("n", "<leader>q", "<cmd>close<CR>", { desc = "윈도우 종료" })
+vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", { desc = "윈도우 종료" })
 -- 윈도우 이동
 vim.keymap.set("n", "<leader>h", "<C-w>h")
 vim.keymap.set("n", "<leader>j", "<C-w>j")
@@ -36,7 +36,8 @@ vim.keymap.set("n", "<leader>gb", require("telescope.builtin").git_bcommits, { d
 
 -- tourble.nvim
 vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Diagnostics (Trouble)" })
-vim.keymap.set("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Diagnostics (Trouble)" })
+vim.keymap.set("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+  { desc = "Diagnostics filter (Trouble)" })
 vim.keymap.set("n", "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", { desc = "Symbols (Trouble)" })
 vim.keymap.set("n", "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
   { desc = "LSP Denifitions / references / ... (Trouble)" })
@@ -74,3 +75,12 @@ vim.keymap.set("n", "<leader>e", function()
     vim.api.nvim_set_current_win(neotree_win)
   end
 end, { desc = "Neotree 열고/닫기 토글" })
+
+-- bufferline
+vim.keymap.set("n", "<Tab>", "<cmd>BufferLineCycleNext<CR>")
+vim.keymap.set("n", "<S-Tab>", "<cmd>BufferLineCyclePrev<CR>")
+for i = 1, 9 do
+  vim.keymap.set("n", "<leader>" .. i, function()
+    require("bufferline").go_to_buffer(i, true)
+  end)
+end

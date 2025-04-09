@@ -25,3 +25,4 @@ lazy.nvim
 - nvimdev/lspsaga : LSP UI plugin
 - windwp/nvim-ts-autotag : html 태그 등 닫는 태그 자동완성
 - mfussenegger/nvim-lint : Linting 
+- akinsho/bufferline.nvim : 탭바 플러그인. buffer 표시.
