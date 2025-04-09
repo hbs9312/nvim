@@ -8,3 +8,6 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 
 vim.o.signcolumn = "yes"
+
+-- 연속키
+vim.o.timeoutlen = 500
