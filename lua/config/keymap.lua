@@ -4,13 +4,15 @@ for _, mode in ipairs(modes) do
 end
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "파일 저장" })
-vim.keymap.set("n", "<leader>Q", "<cmd>qa!<CR>", { desc = "전체 종료" })
-vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", { desc = "윈도우 종료" })
+vim.keymap.set("n", "<leader>q", "<cmd>qa!<CR>", { desc = "전체 종료" })
+-- vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", { desc = "윈도우 종료" })
 -- 윈도우 이동
 vim.keymap.set("n", "<leader>h", "<C-w>h")
 vim.keymap.set("n", "<leader>j", "<C-w>j")
 vim.keymap.set("n", "<leader>k", "<C-w>k")
 vim.keymap.set("n", "<leader>l", "<C-w>l")
+-- 버퍼
+vim.keymap.set("n", "<leader>bd", ":bd!<CR>", { desc = "버퍼 종료(강제)" })
 -- 화면 분할
 vim.keymap.set("n", "<leader>s", "<C-w>s")
 vim.keymap.set("n", "<leader>v", "<C-w>v")
@@ -50,9 +52,18 @@ vim.keymap.set("n", "<leader>d", function()
 end, { desc = "Show diagnostics in floating window" })
 
 -- lspsaga
-vim.keymap.set("n", "gd", "<cmd>Lspsaga peek_definition<CR>", { silent = true })
+vim.keymap.set("n", "gp", "<cmd>Lspsaga peek_definition<CR>", { silent = true })
 vim.keymap.set("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>", { silent = true })
 vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true })
+vim.keymap.set("n", "gd", "<cmd>Lspsaga goto_definition<CR>", { desc = "Go to Denifition" })
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "lspsaga",
+  callback = function()
+    vim.keymap.set("n", "<CR>", function()
+      vim.cmd("Lspsaga goto_definition")
+    end, { buffer = true, desc = "Open Denifition File" })
+  end,
+})
 
 -- neotree
 vim.keymap.set("n", "<leader>e", function()
