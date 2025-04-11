@@ -26,3 +26,5 @@ lazy.nvim
 - windwp/nvim-ts-autotag : html 태그 등 닫는 태그 자동완성
 - mfussenegger/nvim-lint : Linting 
 - akinsho/bufferline.nvim : 탭바 플러그인. buffer 표시.
+- lewis6991/gitsigns.nvim : 라인 단위 git diff 표시. 
+- sindrets/diffview.nvim : 파일 단위 git diff viewer.
