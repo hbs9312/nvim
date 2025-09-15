@@ -3,11 +3,14 @@ for _, mode in ipairs(modes) do
   vim.keymap.set(mode, "<Space>", "<Nop>", { silent = true })
 end
 
--- 라인 통째로 이동
-vim.keymap.set("n", "J", ":m .+1<CR>==")
-vim.keymap.set("n", "K", ":m .-2<CR>==")
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+---- Normal: [m 위로 / ]m 아래로
+vim.keymap.set("n", "]m", ":m .+1<CR>==", { silent = true, noremap = true, desc = "Move line down" })
+vim.keymap.set("n", "[m", ":m .-2<CR>==", { silent = true, noremap = true, desc = "Move line up" })
+
+-- Visual: [m / ]m 로 블록 이동
+vim.keymap.set("v", "]m", ":m '>+1<CR>gv=gv", { silent = true, noremap = true, desc = "Move block down" })
+vim.keymap.set("v", "[m", ":m '<-2<CR>gv=gv", { silent = true, noremap = true, desc = "Move block up" })
+
 
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "파일 저장" })
