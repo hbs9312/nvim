@@ -132,3 +132,14 @@ vim.keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<CR>", { desc = "현재 파�
 vim.keymap.set("n", "<leader>gD", "<cmd>DiffviewOpen HEAD~1<CR>", { desc = "이전 커밋과 diff 보기" })
 vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", { desc = "현재 파일 히스토리 보기" })
 vim.keymap.set("n", "<leader>gq", "<cmd>DiffviewClose<CR>", { desc = "Diffview 닫기" })
+
+-- dab : Debug Adapter Protocol
+local dap = require("dap")
+vim.keymap.set("n", "<F5>", dap.continue)
+vim.keymap.set("n", "<F10>", dap.step_over)
+vim.keymap.set("n", "<F11>", dap.step_into)
+vim.keymap.set("n", "<F12>", dap.step_out)
+vim.keymap.set("n", "<leader>bp", dap.toggle_breakpoint)
+vim.keymap.set("n", "<leader>B", function()
+	dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
+end)
