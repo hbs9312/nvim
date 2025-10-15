@@ -11,3 +11,7 @@ vim.o.signcolumn = "yes"
 
 -- 연속키
 vim.o.timeoutlen = 500
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  command = "checktime",
+})

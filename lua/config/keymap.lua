@@ -11,7 +11,9 @@ vim.keymap.set("n", "[m", ":m .-2<CR>==", { silent = true, noremap = true, desc 
 vim.keymap.set("v", "]m", ":m '>+1<CR>gv=gv", { silent = true, noremap = true, desc = "Move block down" })
 vim.keymap.set("v", "[m", ":m '<-2<CR>gv=gv", { silent = true, noremap = true, desc = "Move block up" })
 
-
+-- 시스템 클립보드 복사/붙여넣기
+vim.keymap.set("v", "<leader>cc", '"+y', { silent = true, noremap = true, desc = "Copy to clipboard" })
+vim.keymap.set("v", "<leader>cp", '"+p', { silent = true, noremap = true, desc = "Copy to clipboard" })
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "파일 저장" })
 vim.keymap.set("n", "<leader>q", "<cmd>qa!<CR>", { desc = "전체 종료" })
