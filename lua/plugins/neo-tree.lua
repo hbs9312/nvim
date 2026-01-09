@@ -37,9 +37,10 @@ return {
       filesystem = {
         follow_current_file = {
           enabled = true,
-          leave_dirs_open = true
+          leave_dirs_open = true,
+          use_libuv_file_watcher = true, -- It may not work in WSL
         }
-      }
+      },
     })
   end,
   opts = {
