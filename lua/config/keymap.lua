@@ -5,7 +5,7 @@ local silent = { silent = true, noremap = true }
 
 -- Disable <Space> default behavior in common modes (leader key remains functional)
 do
-  local modes = { "n", "v", "x", "s", "o", "t" }
+  local modes = { "n", "v", "x", "s", "o" }
   for _, mode in ipairs(modes) do
     map(mode, "<Space>", "<Nop>", { silent = true })
   end
@@ -236,4 +236,3 @@ do
     end, { desc = "Conditional breakpoint" })
   end
 end
-
