@@ -40,10 +40,14 @@ return {
       sort_case_insensitive = false,                                     -- used when sorting files and directories in the tree
       sort_function = nil,                                               -- use a custom function for sorting files and directories in the tree
       filesystem = {
+        use_libuv_file_watcher = true,                                   -- It may not work in WSL
         follow_current_file = {
           enabled = true,
           leave_dirs_open = true,
-          use_libuv_file_watcher = true, -- It may not work in WSL
+        },
+        filtered_items = {
+          visible = true,
+          never_show = { ".git" }
         }
       },
     })

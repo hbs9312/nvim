@@ -236,3 +236,24 @@ do
     end, { desc = "Conditional breakpoint" })
   end
 end
+
+----------------------------------------------------------------------
+-- Window navigation (Normal + Terminal)
+----------------------------------------------------------------------
+map("n", "<C-h>", "<C-w>h", { desc = "Go left window" })
+map("n", "<C-j>", "<C-w>j", { desc = "Go down window" })
+map("n", "<C-k>", "<C-w>k", { desc = "Go up window" })
+map("n", "<C-l>", "<C-w>l", { desc = "Go right window" })
+
+map("t", "<C-h>", "<C-\\><C-n><C-w>h", { desc = "Go left window" })
+map("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Go down window" })
+map("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Go up window" })
+map("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Go right window" })
+
+----------------------------------------------------------------------
+-- Terminal mode: window position move
+----------------------------------------------------------------------
+map("t", "<C-w>H", "<C-\\><C-n><C-w>Hi", { desc = "Move window left" })
+map("t", "<C-w>J", "<C-\\><C-n><C-w>Ji", { desc = "Move window down" })
+map("t", "<C-w>K", "<C-\\><C-n><C-w>Ki", { desc = "Move window up" })
+map("t", "<C-w>L", "<C-\\><C-n><C-w>Li", { desc = "Move window right" })
