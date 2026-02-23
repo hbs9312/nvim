@@ -63,7 +63,38 @@ map("n", "<leader>wl", "<C-w>l", { desc = "Go right window" })
 ----------------------------------------------------------------------
 -- Buffer
 ----------------------------------------------------------------------
-map("n", "<leader>bd", "<cmd>bd!<CR>", { desc = "Force delete buffer" })
+map("n", "<leader>bd", function()
+  local buf = vim.api.nvim_get_current_buf()
+  -- ignore scratch buffer
+  if vim.bo[buf].buftype ~= "" or (vim.api.nvim_buf_get_name(buf) == "" and not vim.bo[buf].modified) then
+    return
+  end
+  local function is_normal_buf(b)
+    return vim.fn.buflisted(b) == 1
+      and vim.bo[b].buftype == ""
+      and b ~= buf
+  end
+  -- try alternate buffer first
+  local alt = vim.fn.bufnr("#")
+  if alt > 0 and is_normal_buf(alt) then
+    vim.api.nvim_set_current_buf(alt)
+  else
+    -- find any other normal buffer
+    local found = false
+    for _, b in ipairs(vim.api.nvim_list_bufs()) do
+      if is_normal_buf(b) then
+        vim.api.nvim_set_current_buf(b)
+        found = true
+        break
+      end
+    end
+    if not found then
+      vim.cmd("enew")
+      vim.bo.bufhidden = "wipe"
+    end
+  end
+  vim.api.nvim_buf_delete(buf, { force = true })
+end, { desc = "Force delete buffer (keep window)" })
 
 ----------------------------------------------------------------------
 -- Clipboard (system clipboard)
@@ -286,4 +317,7 @@ map("x", "<leader>af", function()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
   require("claude-code").focus_terminal()
 end, { desc = "Send selection & focus Claude" })
+
+
+
 
