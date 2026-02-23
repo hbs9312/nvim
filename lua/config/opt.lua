@@ -39,12 +39,12 @@ vim.api.nvim_create_autocmd("FocusGained", {
 })
 
 -- 터미널 윈도우 클릭 시 자동으로 terminal-job mode 진입
-vim.api.nvim_create_autocmd("BufEnter", {
-  pattern = "term://*",
-  callback = function()
-    vim.cmd("startinsert")
-  end
-})
+-- vim.api.nvim_create_autocmd("BufEnter", {
+--   pattern = "term://*",
+--   callback = function()
+--     vim.cmd("startinsert")
+--   end
+-- })
 
 local uv = vim.uv or vim.loop
 local timer
@@ -88,5 +88,6 @@ local function stop_poll()
 end
 
 start_poll(500) -- 1초 (원하면 500ms까지 낮출 수 있음)
+
 
 
