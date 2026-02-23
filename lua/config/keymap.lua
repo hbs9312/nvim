@@ -269,4 +269,21 @@ map("n", "<leader>ar", "<cmd>ClaudeCodeRestart<CR>", { desc = "Restart Claude se
 map("n", "<leader>ax", "<cmd>ClaudeCodeStop<CR>", { desc = "Stop Claude server" })
 map("n", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send file to Claude (@mention)" })
 map("v", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send selection to Claude (@mention)" })
+map("n", "<leader>af", "<cmd>ClaudeCodeFocus<CR>", { desc = "Focus Claude terminal" })
+map("x", "<leader>af", function()
+  -- Capture visual selection and send notification while still in visual mode
+  local ok, sel = pcall(require, "claude-code.tools.selection")
+  if ok and sel._current then
+    local server = require("claude-code.server")
+    pcall(server.send_notification, "selection_changed", {
+      text = sel._current.text,
+      filePath = sel._current.filePath,
+      fileUrl = sel._current.fileUrl,
+      selection = sel._current.selection,
+    })
+  end
+  -- Exit visual mode and focus Claude terminal
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
+  require("claude-code").focus_terminal()
+end, { desc = "Send selection & focus Claude" })
 

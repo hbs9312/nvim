@@ -29,6 +29,15 @@ return {
       window = {
         mappings = {
           ["<space>"] = "none",
+          ["@"] = {
+            function(state)
+              local node = state.tree:get_node()
+              if node.type == "file" then
+                require("claude-code").at_mention(node:get_id())
+              end
+            end,
+            desc = "Send to Claude CLI (@mention)",
+          },
         }
       },
       close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
@@ -55,3 +64,4 @@ return {
   opts = {
   },
 }
+
