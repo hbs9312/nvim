@@ -29,6 +29,15 @@ vim.api.nvim_create_autocmd("InsertLeave", {
   callback = fcitx_to_en
 })
 
+vim.api.nvim_create_autocmd("FocusGained", {
+  callback = function()
+    local mode = vim.api.nvim_get_mode().mode
+    if mode ~= "i" then
+      fcitx_to_en()
+    end
+  end
+})
+
 local uv = vim.uv or vim.loop
 local timer
 
@@ -71,3 +80,4 @@ local function stop_poll()
 end
 
 start_poll(500) -- 1초 (원하면 500ms까지 낮출 수 있음)
+
