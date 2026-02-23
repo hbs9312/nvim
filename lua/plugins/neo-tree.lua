@@ -32,7 +32,7 @@ return {
           ["@"] = {
             function(state)
               local node = state.tree:get_node()
-              if node.type == "file" then
+              if node.type == "file" or node.type == "directory" then
                 require("claude-code").at_mention(node:get_id())
               end
             end,
@@ -64,4 +64,5 @@ return {
   opts = {
   },
 }
+
 
