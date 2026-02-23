@@ -25,6 +25,7 @@ do
       { "<leader>d", group = "Debug (DAP)" },
       { "<leader>y", group = "Clipboard" },
       { "<leader>e", group = "Explorer" },
+      { "<leader>a", group = "AI (Claude)" },
       { "<leader>1", group = "Go to buffer (1~9)" }, -- 대표 라벨
     })
   end
@@ -257,3 +258,15 @@ map("t", "<C-w>H", "<C-\\><C-n><C-w>Hi", { desc = "Move window left" })
 map("t", "<C-w>J", "<C-\\><C-n><C-w>Ji", { desc = "Move window down" })
 map("t", "<C-w>K", "<C-\\><C-n><C-w>Ki", { desc = "Move window up" })
 map("t", "<C-w>L", "<C-\\><C-n><C-w>Li", { desc = "Move window right" })
+
+----------------------------------------------------------------------
+-- AI (Claude Code)
+----------------------------------------------------------------------
+map("n", "<leader>aa", "<cmd>ClaudeCode<CR>", { desc = "Open Claude Code" })
+map("n", "<leader>ae", "<cmd>ClaudeCode external<CR>", { desc = "Claude external terminal" })
+map("n", "<leader>as", "<cmd>ClaudeCodeStatus<CR>", { desc = "Claude status" })
+map("n", "<leader>ar", "<cmd>ClaudeCodeRestart<CR>", { desc = "Restart Claude server" })
+map("n", "<leader>ax", "<cmd>ClaudeCodeStop<CR>", { desc = "Stop Claude server" })
+map("n", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send file to Claude (@mention)" })
+map("v", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send selection to Claude (@mention)" })
+
