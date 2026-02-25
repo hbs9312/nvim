@@ -60,9 +60,16 @@ return {
         }
       },
     })
+
+    -- 외부 프로세스 변경 포함 git 상태 주기적 리프레시 (2초)
+    local timer = vim.uv.new_timer()
+    timer:start(2000, 2000, vim.schedule_wrap(function()
+      local ok, manager = pcall(require, "neo-tree.sources.manager")
+      if ok then
+        manager.refresh("filesystem")
+      end
+    end))
   end,
-  opts = {
-  },
 }
 
 
