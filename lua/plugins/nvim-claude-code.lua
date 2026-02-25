@@ -1,5 +1,5 @@
 return {
-  dir = "/home/seok/Development/nvim-claude-code",
+  "hbs9312/nvim-claude-code",
   config = function()
     require("claude-code").setup({})
   end,
