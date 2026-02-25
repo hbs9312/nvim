@@ -12,6 +12,7 @@ vim.o.signcolumn = "yes"
 -- 연속키
 vim.o.timeoutlen = 500
 vim.opt.autoread = true
+vim.opt.showmode = false
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
   command = "checktime",
 })
@@ -92,6 +93,7 @@ local function stop_poll()
 end
 
 start_poll(500) -- 1초 (원하면 500ms까지 낮출 수 있음)
+
 
 
 
