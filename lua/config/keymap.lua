@@ -272,15 +272,24 @@ end
 ----------------------------------------------------------------------
 -- Window navigation (Normal + Terminal)
 ----------------------------------------------------------------------
-map("n", "<C-h>", "<C-w>h", { desc = "Go left window" })
-map("n", "<C-j>", "<C-w>j", { desc = "Go down window" })
-map("n", "<C-k>", "<C-w>k", { desc = "Go up window" })
-map("n", "<C-l>", "<C-w>l", { desc = "Go right window" })
+local function wincmd(dir)
+  return function()
+    vim.cmd("wincmd " .. dir)
+    if vim.bo.buftype == "terminal" then
+      vim.cmd("startinsert")
+    end
+  end
+end
 
-map("t", "<C-h>", "<C-\\><C-n><C-w>h", { desc = "Go left window" })
-map("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Go down window" })
-map("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Go up window" })
-map("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Go right window" })
+map("n", "<C-h>", wincmd("h"), { desc = "Go left window" })
+map("n", "<C-j>", wincmd("j"), { desc = "Go down window" })
+map("n", "<C-k>", wincmd("k"), { desc = "Go up window" })
+map("n", "<C-l>", wincmd("l"), { desc = "Go right window" })
+
+map("t", "<C-h>", function() vim.cmd("stopinsert") wincmd("h")() end, { desc = "Go left window" })
+map("t", "<C-j>", function() vim.cmd("stopinsert") wincmd("j")() end, { desc = "Go down window" })
+map("t", "<C-k>", function() vim.cmd("stopinsert") wincmd("k")() end, { desc = "Go up window" })
+map("t", "<C-l>", function() vim.cmd("stopinsert") wincmd("l")() end, { desc = "Go right window" })
 
 ----------------------------------------------------------------------
 -- Terminal mode: window position move
@@ -317,6 +326,7 @@ map("x", "<leader>af", function()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
   require("claude-code").focus_terminal()
 end, { desc = "Send selection & focus Claude" })
+
 
 
 
