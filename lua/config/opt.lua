@@ -39,17 +39,38 @@ vim.api.nvim_create_autocmd("FocusGained", {
   end
 })
 
--- 터미널 윈도우 클릭 시 자동으로 terminal-job mode 진입
+-- 터미널 윈도우 전환 시 자동으로 terminal mode 진입
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
-  pattern = "term://*",
   callback = function()
-    vim.defer_fn(function()
-      if vim.bo.buftype == "terminal" then
+    if vim.bo.buftype ~= "terminal" then
+      return
+    end
+    vim.schedule(function()
+      if vim.bo.buftype ~= "terminal" then
+        return
+      end
+      local mode = vim.api.nvim_get_mode().mode
+      if mode == "n" or mode == "nt" then
         vim.cmd("startinsert")
       end
-    end, 10)
+    end)
   end,
 })
+
+-- 같은 터미널 윈도우 내 마우스 클릭 시에도 terminal mode 진입
+vim.keymap.set("n", "<LeftRelease>", function()
+  if vim.bo.buftype == "terminal" then
+    vim.schedule(function()
+      if vim.bo.buftype == "terminal" then
+        local mode = vim.api.nvim_get_mode().mode
+        if mode == "n" or mode == "nt" then
+          vim.cmd("startinsert")
+        end
+      end
+    end)
+  end
+  return "<LeftRelease>"
+end, { expr = true, desc = "Auto-enter terminal mode on mouse click" })
 
 local uv = vim.uv or vim.loop
 local timer
