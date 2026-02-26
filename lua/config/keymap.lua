@@ -308,10 +308,17 @@ map("n", "<leader>as", "<cmd>ClaudeCodeStatus<CR>", { desc = "Claude status" })
 map("n", "<leader>ar", "<cmd>ClaudeCodeRestart<CR>", { desc = "Restart Claude server" })
 map("n", "<leader>ax", "<cmd>ClaudeCodeStop<CR>", { desc = "Stop Claude server" })
 map("n", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send file to Claude (@mention)" })
-map("v", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send selection to Claude (@mention)" })
+map("x", "<leader>am", function()
+  local startline = vim.fn.line("v") - 1 -- 0-indexed
+  local endline = vim.fn.line(".") - 1
+  if startline > endline then
+    startline, endline = endline, startline
+  end
+  require("claude-code.notifications").at_mention(nil, nil, startline, endline)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
+end, { desc = "Send selection to Claude (@mention)" })
 map("n", "<leader>af", "<cmd>ClaudeCodeFocus<CR>", { desc = "Focus Claude terminal" })
 map("x", "<leader>af", function()
-  -- Capture visual selection and send notification while still in visual mode
   local ok, sel = pcall(require, "claude-code.tools.selection")
   if ok and sel._current then
     local server = require("claude-code.server")
@@ -322,7 +329,6 @@ map("x", "<leader>af", function()
       selection = sel._current.selection,
     })
   end
-  -- Exit visual mode and focus Claude terminal
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
   require("claude-code").focus_terminal()
 end, { desc = "Send selection & focus Claude" })
