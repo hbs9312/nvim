@@ -3,6 +3,9 @@
 local map = vim.keymap.set
 local silent = { silent = true, noremap = true }
 
+-- Clear search highlight on Esc
+map("n", "<Esc>", "<cmd>nohlsearch<CR>")
+
 -- Disable <Space> default behavior in common modes (leader key remains functional)
 do
   local modes = { "n", "v", "x", "s", "o" }
@@ -150,10 +153,13 @@ end, { desc = "Show diagnostics (float)" })
 ----------------------------------------------------------------------
 -- lspsaga
 ----------------------------------------------------------------------
-map("n", "sp", "<cmd>Lspsaga peek_definition<CR>", { silent = true, noremap = true, desc = "Peek definition" })
-map("n", "st", "<cmd>Lspsaga peek_type_definition<CR>", { silent = true, noremap = true, desc = "Peek type definition" })
-map("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true, noremap = true, desc = "Code action" })
-map("n", "sd", "<cmd>Lspsaga goto_definition<CR>", { noremap = true, desc = "Go to definition" })
+map("n", "gd", "<cmd>Lspsaga goto_definition<CR>", { noremap = true, desc = "Go to definition" })
+map("n", "gp", "<cmd>Lspsaga peek_definition<CR>", { silent = true, noremap = true, desc = "Peek definition" })
+map("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>", { silent = true, noremap = true, desc = "Peek type definition" })
+map("n", "ca", "<cmd>Lspsaga code_action<CR>", { silent = true, noremap = true, desc = "Code action" })
+map("n", "gr", "<cmd>Lspsaga finder<CR>", { silent = true, noremap = true, desc = "Go to references" })
+map("n", "gi", "<cmd>Lspsaga finder imp<CR>", { silent = true, noremap = true, desc = "Go to implementation" })
+map("n", "gn", "<cmd>Lspsaga rename<CR>", { silent = true, noremap = true, desc = "Rename symbol" })
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "lspsaga",
