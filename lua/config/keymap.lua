@@ -29,6 +29,7 @@ do
       { "<leader>y", group = "Clipboard" },
       { "<leader>e", group = "Explorer" },
       { "<leader>a", group = "AI (Claude)" },
+      { "<leader>o", group = "Octo (GitHub)" },
       { "<leader>1", group = "Go to buffer (1~9)" }, -- 대표 라벨
     })
   end
@@ -320,6 +321,30 @@ map("x", "<leader>af", function()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
   require("claude-code").focus_terminal()
 end, { desc = "Send selection & focus Claude" })
+
+----------------------------------------------------------------------
+-- Octo (GitHub PR/Issue)
+----------------------------------------------------------------------
+local function octo_current_org()
+  local cwd = vim.fn.expand("%:p:h")
+  if cwd == "" then cwd = vim.fn.getcwd() end
+  local out = vim.fn.system({ "git", "-C", cwd, "remote", "get-url", "origin" })
+  if vim.v.shell_error ~= 0 then return nil end
+  -- git@github.com:ORG/REPO(.git)  or  https://github.com/ORG/REPO(.git)
+  return vim.trim(out):match("github%.com[:/]([^/]+)/")
+end
+
+local function octo_search(query)
+  return function()
+    local org = octo_current_org() or "soymedia"
+    vim.cmd(("Octo search %s org:%s"):format(query, org))
+  end
+end
+
+map("n", "<leader>op", "<cmd>Octo pr list<CR>", { desc = "PR list (current repo)" })
+map("n", "<leader>or", octo_search("is:pr is:open review-requested:@me"), { desc = "PRs to review" })
+map("n", "<leader>om", octo_search("is:pr is:open author:@me"), { desc = "My PRs" })
+map("n", "<leader>ot", octo_search("is:pr is:open -author:@me -review:approved"), { desc = "Team PRs needing review" })
 
 
 
