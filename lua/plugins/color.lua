@@ -3,7 +3,7 @@ return {
   priority = 1000,
   config = function()
     require("tokyonight").setup({
-      style = "storm", -- "storm" | "night" | "moon" | "day"
+      style = "night", -- "storm" | "night" | "moon" | "day"
       on_highlights = function(hl, c)
         -- diff 색상 강화 (added/removed/changed 배경색을 더 진하게)
         hl.DiffAdd     = { bg = "#2a4a2a" }
