@@ -236,8 +236,10 @@ end, { desc = "Blame line" })
 -- Git: Diffview
 ----------------------------------------------------------------------
 map("n", "<leader>gd", "<cmd>DiffviewOpen<CR>", { desc = "Diffview open" })
-map("n", "<leader>gD", "<cmd>DiffviewOpen HEAD~1<CR>", { desc = "Diffview prev commit" })
+map("n", "<leader>gD", "<cmd>DiffviewOpen HEAD^!<CR>", { desc = "Diffview latest commit" })
 map("n", "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", { desc = "File history" })
+map("n", "<leader>gl", "<cmd>DiffviewFileHistory<CR>", { desc = "Repository history" })
+map("n", "<leader>gH", "<cmd>DiffviewFileHistory<CR>", { desc = "Repository history" })
 map("n", "<leader>gq", "<cmd>DiffviewClose<CR>", { desc = "Diffview close" })
 
 ----------------------------------------------------------------------

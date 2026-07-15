@@ -111,8 +111,10 @@ Neovim 개인 설정 (WSL2 환경)
 | `<leader>gc` | Git commits (Telescope) |
 | `<leader>gC` | 버퍼 commits (Telescope) |
 | `<leader>gd` | Diffview 열기 |
-| `<leader>gD` | Diffview (이전 커밋) |
+| `<leader>gD` | 최신 커밋 diff |
 | `<leader>gh` | 파일 히스토리 |
+| `<leader>gl` | 저장소 히스토리 |
+| `<leader>gH` | 저장소 히스토리 |
 | `<leader>gq` | Diffview 닫기 |
 
 ### LSP / 코드
