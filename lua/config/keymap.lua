@@ -29,6 +29,7 @@ do
       { "<leader>y", group = "Clipboard" },
       { "<leader>e", group = "Explorer" },
       { "<leader>a", group = "AI (Claude Code)" },
+      { "<leader>n", group = "Notes (Review)" },
       { "<leader>o", group = "Octo (GitHub)" },
       { "<leader>1", group = "Go to buffer (1~9)" }, -- 대표 라벨
     })
@@ -318,6 +319,23 @@ vim.api.nvim_create_autocmd("FileType", {
     })
   end,
 })
+
+----------------------------------------------------------------------
+-- Notes (Review) -- 로컬 전용 리뷰 메모, PR 에는 올라가지 않음
+----------------------------------------------------------------------
+-- Normal 은 커서 줄, Visual 은 선택 범위에 메모를 남긴다.
+-- Octo 리뷰 diff 버퍼에서도 동작하며, 거기서는 <localleader>cn 도 쓸 수 있다.
+map("n", "<leader>nn", "<cmd>ReviewNote<CR>", { desc = "Add note (current line)" })
+map("x", "<leader>nn", ":ReviewNote<CR>", { desc = "Add note (selection)" })
+-- 목록 안에서 <Space> 로 여러 개를 고르면 <C-r> resolve / <C-x> 삭제가 한 번에 적용된다.
+map("n", "<leader>nl", "<cmd>ReviewNoteList<CR>", { desc = "List notes (current branch)" })
+map("n", "<leader>nf", "<cmd>ReviewNoteList file<CR>", { desc = "List notes (current file)" })
+map("n", "<leader>nv", "<cmd>ReviewNoteView<CR>", { desc = "Toggle cursor popup" })
+map("n", "<leader>nr", "<cmd>ReviewNoteResolve<CR>", { desc = "Toggle resolve at cursor" })
+map("n", "<leader>ne", "<cmd>ReviewNoteEdit<CR>", { desc = "Edit note at cursor" })
+map("n", "<leader>nd", "<cmd>ReviewNoteDelete<CR>", { desc = "Delete note at cursor" })
+map("n", "<leader>no", "<cmd>ReviewNoteOpen<CR>", { desc = "Open notes.md (agent mirror)" })
+map("n", "<leader>ni", "<cmd>ReviewNoteInfo<CR>", { desc = "Show store path & counts" })
 
 ----------------------------------------------------------------------
 -- Octo (GitHub PR/Issue)

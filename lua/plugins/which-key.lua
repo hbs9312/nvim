@@ -25,6 +25,7 @@ return {
       { "<leader>y", group = "Clipboard" },
       { "<leader>e", group = "Explorer" },
       { "<leader>a", group = "AI (Claude Code)" },
+      { "<leader>n", group = "Notes (Review)" },
       { "<leader>o", group = "Octo (GitHub)" },
       { "<leader>op", desc = "PR list (current repo)" },
       { "<leader>or", desc = "PRs to review" },
