@@ -28,7 +28,7 @@ do
       { "<leader>d", group = "Debug (DAP)" },
       { "<leader>y", group = "Clipboard" },
       { "<leader>e", group = "Explorer" },
-      { "<leader>a", group = "AI (Claude)" },
+      { "<leader>a", group = "AI (Claude Code)" },
       { "<leader>o", group = "Octo (GitHub)" },
       { "<leader>1", group = "Go to buffer (1~9)" }, -- 대표 라벨
     })
@@ -291,38 +291,33 @@ map("t", "<C-w>K", "<C-\\><C-n><C-w>Ki", { desc = "Move window up" })
 map("t", "<C-w>L", "<C-\\><C-n><C-w>Li", { desc = "Move window right" })
 
 ----------------------------------------------------------------------
--- AI (Claude Code)
+-- AI (Claude Code) -- coder/claudecode.nvim
 ----------------------------------------------------------------------
-map("n", "<leader>aa", "<cmd>ClaudeCode<CR>", { desc = "Open Claude Code" })
-map("n", "<leader>ae", "<cmd>ClaudeCode external<CR>", { desc = "Claude external terminal" })
-map("n", "<leader>as", "<cmd>ClaudeCodeStatus<CR>", { desc = "Claude status" })
-map("n", "<leader>ar", "<cmd>ClaudeCodeRestart<CR>", { desc = "Restart Claude server" })
-map("n", "<leader>ax", "<cmd>ClaudeCodeStop<CR>", { desc = "Stop Claude server" })
-map("n", "<leader>am", "<cmd>ClaudeAtMention<CR>", { desc = "Send file to Claude (@mention)" })
-map("x", "<leader>am", function()
-  local startline = vim.fn.line("v") - 1 -- 0-indexed
-  local endline = vim.fn.line(".") - 1
-  if startline > endline then
-    startline, endline = endline, startline
-  end
-  require("claude-code.notifications").at_mention(nil, nil, startline, endline)
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
-end, { desc = "Send selection to Claude (@mention)" })
+map("n", "<leader>ac", "<cmd>ClaudeCode<CR>", { desc = "Toggle Claude" })
 map("n", "<leader>af", "<cmd>ClaudeCodeFocus<CR>", { desc = "Focus Claude terminal" })
-map("x", "<leader>af", function()
-  local ok, sel = pcall(require, "claude-code.tools.selection")
-  if ok and sel._current then
-    local server = require("claude-code.server")
-    pcall(server.send_notification, "selection_changed", {
-      text = sel._current.text,
-      filePath = sel._current.filePath,
-      fileUrl = sel._current.fileUrl,
-      selection = sel._current.selection,
+map("n", "<leader>ar", "<cmd>ClaudeCode --resume<CR>", { desc = "Resume Claude session" })
+map("n", "<leader>aC", "<cmd>ClaudeCode --continue<CR>", { desc = "Continue Claude session" })
+map("n", "<leader>am", "<cmd>ClaudeCodeSelectModel<CR>", { desc = "Select Claude model" })
+map("n", "<leader>ab", "<cmd>ClaudeCodeAdd %<CR>", { desc = "Add current buffer to context" })
+map("v", "<leader>as", "<cmd>ClaudeCodeSend<CR>", { desc = "Send selection to Claude" })
+map("n", "<leader>ax", "<cmd>ClaudeCodeStop<CR>", { desc = "Stop Claude server" })
+map("n", "<leader>ai", "<cmd>ClaudeCodeStatus<CR>", { desc = "Claude server status" })
+
+-- Diff review: 수락은 :w, 거부는 :q 로도 가능
+map("n", "<leader>aa", "<cmd>ClaudeCodeDiffAccept<CR>", { desc = "Accept diff" })
+map("n", "<leader>ad", "<cmd>ClaudeCodeDiffDeny<CR>", { desc = "Deny diff" })
+map("n", "<leader>aq", "<cmd>ClaudeCodeCloseAllDiffs<CR>", { desc = "Close all pending diffs" })
+
+-- 파일 탐색기에서 <leader>as 로 커서 위 파일을 @mention 컨텍스트에 추가
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "neo-tree", "NvimTree", "oil", "minifiles", "netrw" },
+  callback = function(ev)
+    map("n", "<leader>as", "<cmd>ClaudeCodeTreeAdd<CR>", {
+      buffer = ev.buf,
+      desc = "Add file to Claude context",
     })
-  end
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
-  require("claude-code").focus_terminal()
-end, { desc = "Send selection & focus Claude" })
+  end,
+})
 
 ----------------------------------------------------------------------
 -- Octo (GitHub PR/Issue)

@@ -24,7 +24,7 @@ return {
       { "<leader>d", group = "Debug (DAP)" },
       { "<leader>y", group = "Clipboard" },
       { "<leader>e", group = "Explorer" },
-      { "<leader>a", group = "AI (Claude)" },
+      { "<leader>a", group = "AI (Claude Code)" },
       { "<leader>o", group = "Octo (GitHub)" },
       { "<leader>op", desc = "PR list (current repo)" },
       { "<leader>or", desc = "PRs to review" },
