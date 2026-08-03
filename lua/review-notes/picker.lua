@@ -170,7 +170,7 @@ function M.open(opts)
   pickers
     .new({}, {
       prompt_title = title,
-      results_title = "<Space> 선택  <C-a> 전체  <C-r> resolve  <C-x> 삭제  <C-s> 스코프  <C-f> 필터",
+      results_title = "<Space> 선택  <C-a> 전체  <C-y> 에이전트  <C-r> resolve  <C-x> 삭제  <C-s> 스코프  <C-f> 필터",
       finder = finders.new_table({
         results = notes,
         entry_maker = function(note)
@@ -312,6 +312,18 @@ function M.open(opts)
           )
         end
 
+        -- 에이전트에게 지목. 목록은 닫는다 — 곧 Claude 쪽을 볼 테니까.
+        local function to_agent()
+          local picked = selection(prompt_bufnr)
+          if #picked == 0 then
+            return
+          end
+          actions.close(prompt_bufnr)
+          vim.schedule(function()
+            require("review-notes.agent").send(picked)
+          end)
+        end
+
         -- 여러 개 고르기. 프롬프트 입력 중에는 공백이 검색어라서 노멀 모드에만 <Space> 를
         -- 붙이고, insert 모드에서는 telescope 기본값인 <Tab> 을 그대로 쓴다.
         local function toggle_select()
@@ -322,6 +334,7 @@ function M.open(opts)
         map("n", "<Space>", toggle_select)
         for _, mode in ipairs({ "i", "n" }) do
           map(mode, "<C-a>", actions.toggle_all)
+          map(mode, "<C-y>", to_agent)
           map(mode, "<C-r>", toggle_resolve)
           map(mode, "<C-x>", delete)
           map(mode, "<C-s>", cycle_scope)

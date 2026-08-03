@@ -330,6 +330,10 @@ map("x", "<leader>nn", ":ReviewNote<CR>", { desc = "Add note (selection)" })
 -- 목록 안에서 <Space> 로 여러 개를 고르면 <C-r> resolve / <C-x> 삭제가 한 번에 적용된다.
 map("n", "<leader>nl", "<cmd>ReviewNoteList<CR>", { desc = "List notes (current branch)" })
 map("n", "<leader>nf", "<cmd>ReviewNoteList file<CR>", { desc = "List notes (current file)" })
+-- 커서 위치 메모를 Claude 에 지목한다 (@멘션 + 본문). 목록에서는 <C-y>.
+-- 대문자는 클립보드로만 — nvim 밖의 별도 세션이나 다른 도구에 붙여넣을 때.
+map("n", "<leader>na", "<cmd>ReviewNoteAgent<CR>", { desc = "Send note(s) to agent" })
+map("n", "<leader>nA", "<cmd>ReviewNoteAgent!<CR>", { desc = "Copy note prompt to clipboard" })
 map("n", "<leader>nv", "<cmd>ReviewNoteView<CR>", { desc = "Toggle cursor popup" })
 map("n", "<leader>nr", "<cmd>ReviewNoteResolve<CR>", { desc = "Toggle resolve at cursor" })
 map("n", "<leader>ne", "<cmd>ReviewNoteEdit<CR>", { desc = "Edit note at cursor" })

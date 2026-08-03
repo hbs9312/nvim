@@ -293,6 +293,49 @@ function M.toggle_view(state)
   )
 end
 
+--- 커서 위치 메모를 에이전트에게 지목한다.
+--- extmark 로 움직인 현재 위치를 쓴다. 디스크 값은 저장 시점 기준이라 어긋날 수 있다.
+---@param opts? {clipboard?: boolean}
+function M.agent(opts)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local entries = entries_at_cursor(bufnr)
+  if #entries == 0 then
+    vim.notify("[review-notes] 커서 위치에 메모가 없습니다", vim.log.levels.INFO)
+    return
+  end
+  local notes = {}
+  for _, entry in ipairs(entries) do
+    notes[#notes + 1] =
+      vim.tbl_extend("force", entry.note, { lnum = entry.lnum, end_lnum = entry.end_lnum })
+  end
+  require("review-notes.agent").send(notes, opts)
+end
+
+--- 번호로 지목. 에이전트에게 "#3 #7 고쳐줘" 를 보낼 때 쓴다.
+---@param nums integer[]
+---@param opts? {clipboard?: boolean}
+function M.agent_numbers(nums, opts)
+  local notes, missing = {}, {}
+  for _, num in ipairs(nums) do
+    local note = find_by_number(num)
+    if note then
+      notes[#notes + 1] = note
+    else
+      missing[#missing + 1] = "#" .. num
+    end
+  end
+  if #missing > 0 then
+    vim.notify(
+      ("[review-notes] 찾을 수 없는 번호: %s"):format(table.concat(missing, " ")),
+      vim.log.levels.WARN
+    )
+  end
+  if #notes == 0 then
+    return
+  end
+  require("review-notes.agent").send(notes, opts)
+end
+
 --- 저장 내용이 바뀐 뒤 커서 팝업을 다시 그린다.
 --- 목록에서 일괄 처리하면 커서가 움직이지 않아 자동 갱신 계기가 없다.
 function M.refresh_popup()
@@ -471,6 +514,24 @@ function M.setup(opts)
     end
     M.goto_number(num)
   end, { nargs = 1, desc = "번호로 메모 위치로 점프" })
+  -- 인자 없으면 커서 위치, 번호를 나열하면 그 메모들을 지목한다.
+  -- ! 를 붙이면 Claude 터미널을 건드리지 않고 클립보드로만 넘긴다 (별도 세션·다른 도구용).
+  cmd("ReviewNoteAgent", function(o)
+    local nums = {}
+    for tok in (o.args or ""):gmatch("#?(%d+)") do
+      nums[#nums + 1] = tonumber(tok)
+    end
+    local opts = { clipboard = o.bang }
+    if #nums == 0 then
+      M.agent(opts)
+    else
+      M.agent_numbers(nums, opts)
+    end
+  end, {
+    nargs = "*",
+    bang = true,
+    desc = "노트를 에이전트에게 지목 (! 면 클립보드로만)",
+  })
   cmd("ReviewNoteEdit", function()
     M.edit()
   end, { desc = "커서 메모 수정" })
