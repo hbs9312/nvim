@@ -16,6 +16,9 @@ Neovim 개인 설정 (WSL2 환경)
 │   │   └── opt.lua          # Vim 옵션 및 autocmd
 │   ├── plugins/             # 개별 플러그인 설정 (lazy.nvim spec)
 │   └── review-notes/        # 로컬 전용 리뷰 메모 (플러그인 아님, 자체 모듈)
+│       └── cli.lua          # nvim 밖(에이전트)에서 부르는 통로 — nvim -l 로 실행
+└── skills/
+    └── review-notes/        # Claude 스킬 (~/.claude/skills 로 심볼릭 링크)
 ```
 
 ## 기본 설정
@@ -232,6 +235,8 @@ Octo 의 pending 코멘트는 GitHub 서버에 저장되는 초안이라 성격�
 | `<leader>nn` | 메모 추가 (Normal=커서 줄, Visual=선택 범위) |
 | `<leader>nl` | 목록 — 현재 브랜치 (Telescope) |
 | `<leader>nf` | 목록 — **현재 파일** (전체 브랜치) |
+| `<leader>na` | 커서 위치 메모를 **에이전트에게 지목** (Claude 터미널) |
+| `<leader>nA` | 같은 프롬프트를 **클립보드로만** (별도 세션·다른 도구용) |
 | `<leader>nv` | 커서 팝업 on/off |
 | `<leader>nr` | 커서 위치 메모 resolve 토글 |
 | `<leader>ne` | 커서 위치 메모 수정 |
@@ -246,8 +251,68 @@ Octo 의 pending 코멘트는 GitHub 서버에 저장되는 초안이라 성격�
 
 | 커맨드 | 설명 |
 |----|------|
+| `:ReviewNoteAgent` | 커서 위치 메모를 에이전트에게 지목 |
+| `:ReviewNoteAgent 3 7` | `#3` `#7` 을 지목 (`#` 붙여도 됨) |
+| `:ReviewNoteAgent! 3` | Claude 터미널을 건드리지 않고 클립보드로만 |
 | `:ReviewNoteGoto 7` | `#7` 위치로 점프 |
 | `:ReviewNoteResolve 7` | `#7` resolve 토글 (인자 없으면 커서 위치) |
+
+#### 에이전트에게 지목하기
+
+`<leader>na` (커서) 또는 목록에서 `<Space>` 로 고른 뒤 `<C-y>`. Claude 프롬프트에 이렇게 들어간다:
+
+```
+@lua/foo.lua#L10-20        ← 위치는 claudecode 의 @멘션으로 (파일을 직접 읽게)
+@lua/bar.lua#L42
+
+아래 로컬 리뷰 노트를 고쳐줘. (nvim review-notes 메모 — PR 코멘트가 아니라 로컬에만 있는 것)
+고친 뒤 처리한 노트를 #번호로 알려줘. 안 고친 게 있으면 이유도 번호와 함께.
+
+#3 lua/foo.lua:L10-20
+  이 함수는 인자를 검증하지 않는다.
+  (기준줄: local function foo(a, b))
+
+#7 lua/bar.lua:L42
+  에러 뿌리기 말고 컨텍스트 달아서 다시 던지기
+```
+
+- 위치는 `claudecode.send_at_mention` 으로, 지시문·본문은 터미널 프롬프트 텍스트로 보낸다. 멘션이 내부에서 50ms 디바운스로 배치 전송되므로 텍스트는 `mention_flush_ms`(200ms) 뒤에 보내 순서가 뒤집히지 않게 한다
+- **Claude 가 안 떠 있어도 된다.** 멘션이 큐에 쌓이고 터미널이 뜨며, 연결되면(최대 `connect_timeout_ms` 15초) 프롬프트가 들어간다
+- claudecode 가 없거나 끝내 붙지 않으면 **같은 프롬프트를 클립보드(`+`)로** 넘긴다. codex·웹 등 다른 도구에 붙여넣으면 된다
+- 노트는 **번호 오름차순**으로 정렬해 보낸다. 멘션·본문·알림·에이전트 답신 순서가 어긋나지 않는다
+- 같은 라인 범위에 노트가 여러 개면 멘션은 한 번만 (본문은 각각)
+- 다른 브랜치에서 적어 현재 작업트리에 없는 파일은 멘션을 건너뛰고 본문만 보낸다 (경고로 알린다)
+- 커서 경로는 extmark 로 움직인 **현재 위치**를 보낸다. 디스크 값은 마지막 저장 시점 기준이다
+- 답신으로 번호를 받으면 `:ReviewNoteResolve 7` 로 닫는다 (nvim 이 자동 resolve 하지는 않는다)
+
+#### nvim 밖의 세션에서 쓰기
+
+Claude 가 nvim 안의 터미널이 아니라 별도 세션에서 돌 때는 세 갈래다.
+
+| 상황 | 방법 |
+|------|------|
+| 같은 머신, `claude --ide` 또는 `/ide` 로 붙인 세션 | `<leader>na` 그대로. `@멘션`은 WebSocket 으로 그 세션에 꽂히고, 본문은 nvim 이 쓸 터미널이 없으니 클립보드로 떨어진다 → `<C-v>` 붙여넣기 |
+| 완전히 별도 세션 (다른 pane·워크트리) | 에이전트가 **CLI 로 직접 읽는다**. `review-notes` 스킬이 이 흐름을 담고 있다 |
+| 다른 도구 (codex, 웹) | `<leader>nA` 로 프롬프트만 클립보드에 담아 붙여넣기 |
+
+**에이전트용 CLI** — `nvim -l` 로 `store.lua` 를 그대로 재사용하므로 경로 파생·저장 형식·락이 nvim 쪽과 항상 같다 (셸로 다시 구현하면 어긋난다):
+
+```bash
+RN="nvim -l ~/.config/nvim/lua/review-notes/cli.lua"
+cd <레포>                       # 스토어 키를 git remote 에서 뽑으므로 레포 안에서
+$RN list --json                 # 현재 브랜치 미해결 (--file/--branch/--all-branches/--include-resolved)
+$RN show 3 7 --json
+$RN resolve 3 7                 # --off 면 미해결로
+$RN path ; $RN md
+```
+
+**스킬** — `skills/review-notes/SKILL.md` (`~/.claude/skills/review-notes` 로 심볼릭 링크). 스토어가 레포 밖이라 에이전트가 프로젝트를 grep 해도 찾을 수 없으므로, 위치·CLI 사용법·작업 순서·금지사항을 스킬로 넘긴다. 핵심 규칙은 셋이다.
+
+- `lnum` 을 그대로 믿지 말고 **기준줄(`snippet[1]`)로 위치를 재확인**한다 (노트 작성 후 코드가 밀렸을 수 있다)
+- **실제로 고친 것만** `resolve` 하고, 나머지는 열어둔 채 이유를 번호와 함께 보고한다
+- `notes.md`·`notes.json` 을 직접 쓰지 않는다 (미러는 재생성되고, 정공본은 락으로 보호된다)
+
+**동시 쓰기** — 에이전트가 `resolve` 하는 동안 nvim 이 버퍼를 저장하면 서로의 쓰기를 덮을 수 있다(load→modify→write 전체 파일). 그래서 모든 쓰기를 `notes.json.lock` (O_EXCL, 10초 넘은 락은 탈취, 같은 프로세스 안에서는 재진입) 으로 직렬화한다. 읽기는 잠그지 않는다.
 
 목록(`<leader>nl` / `<leader>nf`) 안에서:
 
@@ -255,6 +320,7 @@ Octo 의 pending 코멘트는 GitHub 서버에 저장되는 초안이라 성격�
 |----|------|
 | `<Space>` (노멀) / `<Tab>` | 여러 개 고르기. insert 모드에서는 공백이 검색어라 `<Tab>` 을 쓴다 |
 | `<C-a>` | 전체 고르기/해제 |
+| `<C-y>` | **에이전트에게 지목** — 고른 것 전부 (목록은 닫힌다) |
 | `<C-r>` | resolve 토글 — **고른 것 전부**에 적용 |
 | `<C-x>` | 삭제 — **고른 것 전부**에 적용 |
 | `<C-s>` | 스코프 순환 (현재 브랜치 → 현재 파일 전체 브랜치 → 전체) |
