@@ -172,6 +172,84 @@ function M.md_path(dir)
   return d and (d .. "/notes.md") or nil
 end
 
+----------------------------------------------------------------------
+-- 파일 락
+--
+-- notes.json 은 여러 주체가 함께 쓴다. 워크트리별 nvim 인스턴스, 그리고
+-- cli.lua 를 통해 들어오는 에이전트. read-modify-write 사이에 남의 쓰기가
+-- 끼면 조용히 덮어써지므로(예: 에이전트의 resolve 가 nvim 의 위치 저장에 지워짐)
+-- 쓰기 경로 전체를 자문 락으로 감싼다.
+--
+-- O_EXCL 로 잡고, 프로세스가 죽어 남겨진 락은 mtime 으로 뺏는다.
+----------------------------------------------------------------------
+
+local LOCK_NAME = "notes.json.lock"
+--- 락을 기다리는 최대 시간. 넘으면 쓰지 않고 실패로 돌려준다.
+local LOCK_TIMEOUT_MS = 2000
+--- 이만큼 오래된 락은 죽은 프로세스가 남긴 것으로 보고 뺏는다.
+local LOCK_STALE_MS = 10000
+local LOCK_RETRY_MS = 20
+--- 같은 프로세스 안에서의 재진입 깊이. load() 가 save() 를 부르는 경로가 있다.
+local lock_depth = 0
+
+---@param dir string
+---@return integer|nil fd, string|nil err
+local function lock_acquire(dir)
+  local path = dir .. "/" .. LOCK_NAME
+  local waited = 0
+  while true do
+    -- "wx" = O_WRONLY|O_CREAT|O_EXCL. 이미 있으면 실패한다.
+    local fd = vim.uv.fs_open(path, "wx", tonumber("600", 8))
+    if fd then
+      pcall(vim.uv.fs_write, fd, tostring(vim.uv.os_getpid()))
+      return fd
+    end
+    local st = vim.uv.fs_stat(path)
+    if st and st.mtime and (os.time() - st.mtime.sec) * 1000 > LOCK_STALE_MS then
+      pcall(vim.uv.fs_unlink, path)
+    elseif waited >= LOCK_TIMEOUT_MS then
+      return nil, ("%s 락을 얻지 못했습니다 (%s)"):format(LOCK_NAME, path)
+    else
+      vim.uv.sleep(LOCK_RETRY_MS)
+      waited = waited + LOCK_RETRY_MS
+    end
+  end
+end
+
+--- 쓰기 경로를 감싼다. 반환값은 fn 의 앞 두 개(ok/err 관례)를 그대로 넘긴다.
+--- 락을 못 얻거나 fn 이 죽으면 fail_value 와 에러 메시지를 돌려준다.
+---@generic T
+---@param fn fun(): T, string|nil
+---@param fail_value any  락 실패 시 첫 반환값 (호출자의 실패 관례에 맞춘다)
+---@return any, string|nil
+local function with_lock(fn, fail_value)
+  if lock_depth > 0 then
+    return fn() -- 이미 이 프로세스가 쥐고 있다
+  end
+  local dir = M.dir()
+  if not dir then
+    return fn() -- 스토어 경로를 모르면 어차피 저장 단계에서 실패한다
+  end
+  if vim.fn.isdirectory(dir) == 0 and vim.fn.mkdir(dir, "p") == 0 then
+    return fail_value, "디렉터리를 만들 수 없습니다: " .. dir
+  end
+
+  local fd, err = lock_acquire(dir)
+  if not fd then
+    -- 락 없이 밀어붙이지 않는다. 조용히 덮어쓰는 것보다 실패가 낫다.
+    return fail_value, err
+  end
+  lock_depth = 1
+  local ok, a, b = pcall(fn)
+  lock_depth = 0
+  pcall(vim.uv.fs_close, fd)
+  pcall(vim.uv.fs_unlink, dir .. "/" .. LOCK_NAME)
+  if not ok then
+    return fail_value, tostring(a)
+  end
+  return a, b
+end
+
 --- 절대경로를 레포 상대경로로. 레포 밖이면 nil.
 ---@param abs string
 ---@param dir? string
@@ -404,22 +482,24 @@ end
 ---@param note table  path/lnum/end_lnum/text 필수
 ---@return table|nil note, string|nil err
 function M.add(note)
-  local data, err = M.load()
-  if err then
-    return nil, err
-  end
-  note.id = new_id()
-  note.number = data.next_number or 1
-  data.next_number = note.number + 1
-  note.resolved = note.resolved or false
-  note.created_at = now()
-  note.updated_at = note.created_at
-  table.insert(data.notes, note)
-  local ok, serr = M.save(data)
-  if not ok then
-    return nil, serr
-  end
-  return note
+  return with_lock(function()
+    local data, err = M.load()
+    if err then
+      return nil, err
+    end
+    note.id = new_id()
+    note.number = data.next_number or 1
+    data.next_number = note.number + 1
+    note.resolved = note.resolved or false
+    note.created_at = now()
+    note.updated_at = note.created_at
+    table.insert(data.notes, note)
+    local ok, serr = M.save(data)
+    if not ok then
+      return nil, serr
+    end
+    return note
+  end, nil)
 end
 
 --- id 로 찾아 fn 을 적용. fn 이 false 를 반환하면 저장하지 않는다.
@@ -427,20 +507,22 @@ end
 ---@param fn fun(note: table): boolean|nil
 ---@return boolean ok, string|nil err
 function M.update(id, fn)
-  local data, err = M.load()
-  if err then
-    return false, err
-  end
-  for _, n in ipairs(data.notes) do
-    if n.id == id then
-      if fn(n) == false then
-        return true
-      end
-      n.updated_at = now()
-      return M.save(data)
+  return with_lock(function()
+    local data, err = M.load()
+    if err then
+      return false, err
     end
-  end
-  return false, "해당 메모를 찾을 수 없습니다"
+    for _, n in ipairs(data.notes) do
+      if n.id == id then
+        if fn(n) == false then
+          return true
+        end
+        n.updated_at = now()
+        return M.save(data)
+      end
+    end
+    return false, "해당 메모를 찾을 수 없습니다"
+  end, false)
 end
 
 ---@param ids string[]
@@ -463,25 +545,27 @@ function M.update_many(ids, fn)
   if vim.tbl_isempty(want) then
     return 0
   end
-  local data, err = M.load()
-  if err then
-    return 0, err
-  end
-  local changed = 0
-  for _, n in ipairs(data.notes) do
-    if want[n.id] and fn(n) ~= false then
-      n.updated_at = now()
-      changed = changed + 1
+  return with_lock(function()
+    local data, err = M.load()
+    if err then
+      return 0, err
     end
-  end
-  if changed == 0 then
-    return 0
-  end
-  local ok, serr = M.save(data)
-  if not ok then
-    return 0, serr
-  end
-  return changed
+    local changed = 0
+    for _, n in ipairs(data.notes) do
+      if want[n.id] and fn(n) ~= false then
+        n.updated_at = now()
+        changed = changed + 1
+      end
+    end
+    if changed == 0 then
+      return 0
+    end
+    local ok, serr = M.save(data)
+    if not ok then
+      return 0, serr
+    end
+    return changed
+  end, 0)
 end
 
 --- 여러 메모를 한 번에 삭제.
@@ -492,27 +576,29 @@ function M.remove_many(ids)
   if vim.tbl_isempty(want) then
     return 0
   end
-  local data, err = M.load()
-  if err then
-    return 0, err
-  end
-  local kept, removed = {}, 0
-  for _, n in ipairs(data.notes) do
-    if want[n.id] then
-      removed = removed + 1
-    else
-      kept[#kept + 1] = n
+  return with_lock(function()
+    local data, err = M.load()
+    if err then
+      return 0, err
     end
-  end
-  if removed == 0 then
-    return 0, "해당 메모를 찾을 수 없습니다"
-  end
-  data.notes = kept
-  local ok, serr = M.save(data)
-  if not ok then
-    return 0, serr
-  end
-  return removed
+    local kept, removed = {}, 0
+    for _, n in ipairs(data.notes) do
+      if want[n.id] then
+        removed = removed + 1
+      else
+        kept[#kept + 1] = n
+      end
+    end
+    if removed == 0 then
+      return 0, "해당 메모를 찾을 수 없습니다"
+    end
+    data.notes = kept
+    local ok, serr = M.save(data)
+    if not ok then
+      return 0, serr
+    end
+    return removed
+  end, 0)
 end
 
 --- 여러 메모의 위치를 한 번에 갱신 (버퍼 저장 시 사용).
@@ -522,26 +608,28 @@ function M.update_positions(updates)
   if vim.tbl_isempty(updates) then
     return true
   end
-  local data, err = M.load()
-  if err then
-    return false
-  end
-  local dirty = false
-  for _, n in ipairs(data.notes) do
-    local u = updates[n.id]
-    if u and (n.lnum ~= u.lnum or n.end_lnum ~= u.end_lnum) then
-      n.lnum, n.end_lnum = u.lnum, u.end_lnum
-      if u.snippet then
-        n.snippet = u.snippet
-      end
-      n.updated_at = now()
-      dirty = true
+  return with_lock(function()
+    local data, err = M.load()
+    if err then
+      return false, err
     end
-  end
-  if not dirty then
-    return true
-  end
-  return M.save(data)
+    local dirty = false
+    for _, n in ipairs(data.notes) do
+      local u = updates[n.id]
+      if u and (n.lnum ~= u.lnum or n.end_lnum ~= u.end_lnum) then
+        n.lnum, n.end_lnum = u.lnum, u.end_lnum
+        if u.snippet then
+          n.snippet = u.snippet
+        end
+        n.updated_at = now()
+        dirty = true
+      end
+    end
+    if not dirty then
+      return true
+    end
+    return M.save(data)
+  end, false)
 end
 
 ---@param id string
