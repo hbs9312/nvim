@@ -53,6 +53,9 @@ Neovim 개인 설정 (WSL2 환경)
 | | sindrets/diffview.nvim | 파일 단위 git diff viewer |
 | | pwntester/octo.nvim | GitHub PR/이슈 리뷰 |
 | **디버깅** | mfussenegger/nvim-dap | Debug Adapter Protocol |
+| | rcarriga/nvim-dap-ui | 디버거 UI (스코프/스택/watch/REPL) |
+| | theHamsta/nvim-dap-virtual-text | 변수값을 코드 옆에 인라인 표시 |
+| | jay-babu/mason-nvim-dap.nvim | 디버그 어댑터 자동 설치 |
 | **AI** | coder/claudecode.nvim | Claude Code IDE 통합 (WebSocket MCP) |
 | **기타** | ahmedkhalf/project.nvim | 프로젝트 루트 인식 |
 | | iamcco/markdown-preview.nvim | 마크다운 미리보기 (브라우저) |
@@ -172,14 +175,52 @@ lspsaga 창(finder/peek) 안에서 `<CR>` 은 해당 정의 파일을 연다.
 
 ### 디버깅 (DAP)
 
+TS/JS 는 `js-debug-adapter`(vscode-js-debug), Python 은 `debugpy` 를 쓴다. 둘 다
+`mason-nvim-dap` 이 자동으로 설치하고, 어댑터와 실행 설정은 `lua/plugins/dap.lua` 에
+직접 적어둔다 — mason 의 기본 핸들러(`handlers`)는 일부러 쓰지 않는다.
+
 | 키 | 설명 |
 |----|------|
-| `<F5>` | Continue |
+| `<F5>` | Continue / 세션 시작 |
 | `<F10>` | Step over |
 | `<F11>` | Step into |
 | `<F12>` | Step out |
+| `<leader>dc` | Continue / 세션 시작 |
+| `<leader>dC` | 커서 위치까지 실행 |
+| `<leader>dL` | 마지막 설정으로 다시 실행 |
+| `<leader>dq` | 세션 종료 |
+| `<leader>dr` | REPL 토글 |
 | `<leader>db` | 브레이크포인트 토글 |
 | `<leader>dB` | 조건부 브레이크포인트 |
+| `<leader>dp` | 로그 포인트 (멈추지 않고 메시지만 출력) |
+| `<leader>dx` | 브레이크포인트 전체 삭제 |
+| `<leader>du` | DAP UI 토글 |
+| `<leader>de` | 커서 아래 식 평가 (Visual: 선택 범위) |
+| `<leader>df` | 스택 프레임 목록 (부동 창) |
+| `<leader>ds` | 현재 스코프 (부동 창) |
+
+`<F5>` 를 누르면 현재 파일 타입에 맞는 실행 설정 목록이 뜬다.
+
+| 파일 타입 | 설정 | 비고 |
+|----|----|----|
+| js / ts (+react) | Launch file (node) | 현재 파일을 node 로 실행. node 23+ 는 `.ts` 도 그대로 실행된다 |
+| | Launch file (tsx) | `tsx` 로 `.ts` 실행 — devDependency 에 `tsx` 가 있어야 한다 |
+| | Launch npm script | `package.json` 의 scripts 를 골라 실행. lockfile 로 npm/pnpm/yarn/bun 판별 |
+| | Attach to process | 실행 중인 node 프로세스를 골라 붙는다 |
+| | Attach to port (node --inspect) | 기본 9229 |
+| | Attach to Chrome | `--remote-debugging-port=9222` 로 띄운 크롬 |
+| | Launch Chrome against dev server | URL 입력 (기본 `http://localhost:5173`), 별도 프로필로 띄운다 |
+| python | Launch file / Launch module | 현재 파일 또는 모듈(`-m`) 실행 |
+| | pytest (current file) | 현재 파일만 pytest 로 실행 |
+| | Attach to debugpy (:5678) | `python -m debugpy --listen 5678` 로 띄운 프로세스 |
+
+Python 인터프리터는 프로젝트 `.venv` → 활성 venv(`VIRTUAL_ENV`/`CONDA_PREFIX`) →
+시스템 `python3` 순으로 잡는다 (pyright 설정과 같은 규칙). 어댑터로 쓰는 debugpy 는
+mason 쪽 python 이고, 디버기는 위에서 고른 프로젝트 python 으로 돈다.
+
+`.vscode/launch.json` 이 있으면 그 설정도 같은 목록에 함께 뜬다 (dap 이 `$cwd` 기준으로
+실행 시점에 읽는다). VS Code 가 쓰는 `type: node` / `chrome` 은 js-debug 서버가 받는
+`pwa-*` 로 바꿔서 넘긴다 — 이름만 별칭으로 두면 어댑터가 연결을 끊는다.
 
 ### 라인 이동
 

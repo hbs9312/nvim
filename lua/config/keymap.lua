@@ -246,20 +246,55 @@ map("n", "<leader>gq", "<cmd>DiffviewClose<CR>", { desc = "Diffview close" })
 ----------------------------------------------------------------------
 -- Debug Adapter Protocol (DAP)
 ----------------------------------------------------------------------
-do
-  local ok, dap = pcall(require, "dap")
-  if ok then
-    map("n", "<F5>", dap.continue, { desc = "DAP continue" })
-    map("n", "<F10>", dap.step_over, { desc = "DAP step over" })
-    map("n", "<F11>", dap.step_into, { desc = "DAP step into" })
-    map("n", "<F12>", dap.step_out, { desc = "DAP step out" })
-
-    map("n", "<leader>db", dap.toggle_breakpoint, { desc = "Toggle breakpoint" })
-    map("n", "<leader>dB", function()
-      dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
-    end, { desc = "Conditional breakpoint" })
+-- require 를 콜백 안에서 하는 이유: 키를 누를 때까지 dap 을 로드하지 않는다.
+local function dap_do(fn)
+  return function()
+    fn(require("dap"))
   end
 end
+
+map("n", "<F5>", dap_do(function(dap) dap.continue() end), { desc = "DAP continue / start" })
+map("n", "<F10>", dap_do(function(dap) dap.step_over() end), { desc = "DAP step over" })
+map("n", "<F11>", dap_do(function(dap) dap.step_into() end), { desc = "DAP step into" })
+map("n", "<F12>", dap_do(function(dap) dap.step_out() end), { desc = "DAP step out" })
+
+map("n", "<leader>dc", dap_do(function(dap) dap.continue() end), { desc = "Continue / start" })
+map("n", "<leader>dC", dap_do(function(dap) dap.run_to_cursor() end), { desc = "Run to cursor" })
+map("n", "<leader>dL", dap_do(function(dap) dap.run_last() end), { desc = "Run last configuration" })
+map("n", "<leader>dq", dap_do(function(dap) dap.terminate() end), { desc = "Terminate session" })
+map("n", "<leader>dr", dap_do(function(dap) dap.repl.toggle() end), { desc = "Toggle REPL" })
+
+map("n", "<leader>db", dap_do(function(dap) dap.toggle_breakpoint() end), { desc = "Toggle breakpoint" })
+map("n", "<leader>dB", dap_do(function(dap)
+  vim.ui.input({ prompt = "Breakpoint condition: " }, function(cond)
+    if cond and cond ~= "" then
+      dap.set_breakpoint(cond)
+    end
+  end)
+end), { desc = "Conditional breakpoint" })
+map("n", "<leader>dp", dap_do(function(dap)
+  vim.ui.input({ prompt = "Log point message: " }, function(msg)
+    if msg and msg ~= "" then
+      dap.set_breakpoint(nil, nil, msg)
+    end
+  end)
+end), { desc = "Log point (no stop)" })
+map("n", "<leader>dx", dap_do(function(dap) dap.clear_breakpoints() end), { desc = "Clear all breakpoints" })
+
+-- dap-ui
+map("n", "<leader>du", function() require("dapui").toggle() end, { desc = "Toggle DAP UI" })
+map("n", "<leader>de", function() require("dapui").eval() end, { desc = "Eval expression under cursor" })
+map("x", "<leader>de", function() require("dapui").eval() end, { desc = "Eval selection" })
+
+-- 부동 창 위젯: 프레임 목록 / 현재 스코프
+map("n", "<leader>df", function()
+  local widgets = require("dap.ui.widgets")
+  widgets.centered_float(widgets.frames)
+end, { desc = "Frames (float)" })
+map("n", "<leader>ds", function()
+  local widgets = require("dap.ui.widgets")
+  widgets.centered_float(widgets.scopes)
+end, { desc = "Scopes (float)" })
 
 ----------------------------------------------------------------------
 -- Window navigation (Normal + Terminal)
