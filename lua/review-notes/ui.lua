@@ -170,10 +170,11 @@ end
 ---@return string[] lines, table[] marks
 local function render_group(group, max_height, width)
   local lines, marks = {}, {}
-  local function add(text, hl)
+  --- end_col 을 주면 그 바이트까지만 칠한다. 없으면 줄 끝까지.
+  local function add(text, hl, end_col)
     lines[#lines + 1] = text
     if hl then
-      marks[#marks + 1] = { row = #lines - 1, hl = hl }
+      marks[#marks + 1] = { row = #lines - 1, hl = hl, end_col = end_col }
     end
   end
 
@@ -197,7 +198,9 @@ local function render_group(group, max_height, width)
     for _, para in ipairs(vim.split(note.text or "", "\n", { plain = true })) do
       for _, wrapped in ipairs(wrap_display(para, body_width)) do
         if first then
-          add(prefix .. wrapped, hl)
+          -- 상태색은 "#1 ● " 표식에만 준다. 본문까지 칠하면 첫 줄만 색이 달라
+          -- 여러 줄 메모에서 어색해진다.
+          add(prefix .. wrapped, hl, #prefix)
           first = false
         else
           add(indent .. wrapped)
@@ -257,9 +260,10 @@ local function fill(buf, lines, marks)
   vim.bo[buf].modifiable = false
   vim.bo[buf].bufhidden = "wipe"
   for _, m in ipairs(marks) do
+    local line = lines[m.row + 1] or ""
     pcall(vim.api.nvim_buf_set_extmark, buf, hl_ns, m.row, 0, {
       end_row = m.row,
-      end_col = #(lines[m.row + 1] or ""),
+      end_col = math.min(m.end_col or #line, #line),
       hl_group = m.hl,
     })
   end
