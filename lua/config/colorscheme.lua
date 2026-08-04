@@ -33,9 +33,21 @@ local diff_overrides = {
   DiffText    = { bg = "#33240f", bold = true, underline = true },
 
   -- 줄 단위 그룹 (filetype=diff, diffview 파일 패널, fugitive)
+  -- diffview 는 소문자 diffAdded 에 링크하지만 하이라이트 이름은 대소문자를
+  -- 구분하지 않으므로 같은 그룹이다.
   DiffAdded   = { fg = "#b7e88f", bg = "#1c2a1c" },
   DiffRemoved = { fg = "#f4a2a2", bg = "#301c1c" },
   DiffChanged = { fg = "#eccb8c", bg = "#2a2814" },
+
+  -- Octo 리뷰창은 좌/우 창에 namespace 하이라이트를 걸어 DiffText 를 자기
+  -- 그룹으로 링크한다 (octo/reviews/layout.lua). 그 기본값이 GitHub 브랜드색
+  -- (#238636 / #da3633) + 흰 글자라 이 팔레트보다 훨씬 밝고, 바뀐 구간의
+  -- 문법색이 흰색으로 덮인다. 그래서 밴드 배경을 그대로 쓰고 bold·밑줄로만
+  -- 구분한다 — DiffText 와 같은 방식이고, 흰 글자를 없애 문법색이 살아난다.
+  -- octo 는 hlexists 로 가드하므로(octo/ui/colors.lua) 여기서 먼저 정의해두면
+  -- octo 로드 시 덮이지 않는다. octo 는 ColorScheme 에 반응하지 않는다.
+  OctoReviewDiffAddText    = { bg = "#1c2a1c", bold = true, underline = true },
+  OctoReviewDiffDeleteText = { bg = "#301c1c", bold = true, underline = true },
 }
 
 local function apply_overrides()
