@@ -3,7 +3,7 @@ return {
   dependencies = "nvim-tree/nvim-web-devicons",
   opts = {
     options = {
-      theme = "tokyonight",
+      theme = "auto", -- 활성 colorscheme 을 따라간다 (<leader>uc 로 갈아 끼울 때 함께 변경)
       section_separators = { left = "", right = "" },
       component_separators = { left = "", right = "" },
     },

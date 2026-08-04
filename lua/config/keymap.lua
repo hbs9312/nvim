@@ -31,6 +31,7 @@ do
       { "<leader>a", group = "AI (Claude Code)" },
       { "<leader>n", group = "Notes (Review)" },
       { "<leader>o", group = "Octo (GitHub)" },
+      { "<leader>u", group = "UI/Theme" },
       { "<leader>1", group = "Go to buffer (1~9)" }, -- 대표 라벨
     })
   end
@@ -130,6 +131,30 @@ do
     map("n", "<leader>gC", telescope.git_bcommits, { desc = "Buffer commits" })
   end
 end
+
+----------------------------------------------------------------------
+-- UI/Theme
+----------------------------------------------------------------------
+-- <C-n>/<C-p> 로 목록을 오르내리면 편집 화면이 바로 그 테마로 다시 그려지고,
+-- <CR> 로 고른 값은 state 파일에 저장돼 다음 기동에도 유지된다 (:ColorschemeReset 으로 해제).
+-- <Esc> 로 나가면 원래 테마로 복구된다. 자세한 건 lua/config/colorscheme.lua.
+map("n", "<leader>uc", function()
+  require("telescope.builtin").colorscheme({ enable_preview = true })
+end, { desc = "Colorscheme picker (live preview)" })
+
+-- 현재 테마 이름과 Normal/Comment 실제 색을 확인 (color.lua 에 박아넣을 때 참고)
+map("n", "<leader>ui", function()
+  local function hex(hl, key)
+    local ok, v = pcall(vim.api.nvim_get_hl, 0, { name = hl, link = false })
+    if not ok or not v[key] then return "unset" end
+    return ("#%06x"):format(v[key])
+  end
+  vim.notify(
+    ("colorscheme: %s\nNormal bg: %s\nComment fg: %s")
+      :format(vim.g.colors_name or "?", hex("Normal", "bg"), hex("Comment", "fg")),
+    vim.log.levels.INFO
+  )
+end, { desc = "Show current theme colors" })
 
 ----------------------------------------------------------------------
 -- Trouble (Diagnostics/Trouble)
