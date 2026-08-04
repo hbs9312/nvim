@@ -11,19 +11,31 @@ M.default = "sorbet"
 -- git 에 올라가지 않는 로컬 상태. 레포만 clone 한 다른 머신에서는 default 로 시작한다.
 local state_file = vim.fs.joinpath(vim.fn.stdpath("state"), "colorscheme")
 
--- diff 배경색 강화. 테마마다 diff 색이 제각각이고 대체로 너무 흐려서,
--- 테마와 무관하게 이 값으로 덮는다 (ColorScheme 이벤트마다 다시 적용).
--- 원본 tokyonight on_highlights 에 있던 값을 그대로 옮겨온 것.
+-- diff 색상. 테마마다 diff 색이 제각각이고 대체로 너무 흐려서, 테마와 무관하게
+-- 이 값으로 덮는다 (ColorScheme 이벤트마다 다시 적용).
+--
+-- 배경 틴트를 낮게 잡는 게 핵심이다. 처음엔 tokyonight 에서 가져온 #2a4a2a /
+-- #4a2a2a 를 썼는데, 채도·명도가 높아서 그 위에 얹히는 문법색이 뭉개졌다
+-- (sorbet 기준 최저 3.18:1). 아래 값은 문법색 최저 대비를 5:1 대로 끌어올린 것.
+--
+-- 줄 단위 그룹(DiffAdded/Removed/Changed)은 글자색까지 지정하는데, 같은 색조가
+-- 겹치지 않도록 배경보다 훨씬 밝은 톤을 쓴다. 초록 글자 + 초록 배경은 명도차만
+-- 남아서 수치가 통과해도 실제로는 잘 안 보인다.
 local diff_overrides = {
-  DiffAdd     = { bg = "#2a4a2a" },
-  DiffChange  = { bg = "#3a3a1a" },
-  DiffDelete  = { bg = "#4a2a2a" },
-  DiffText    = { bg = "#4a4a1a" },
+  -- diff mode (diffview, vimdiff): 배경만 칠하고 글자는 파일의 문법색을 그대로 둔다
+  DiffAdd     = { bg = "#1c2a1c" },
+  DiffChange  = { bg = "#2a2814" },
+  DiffDelete  = { bg = "#301c1c" },
+  -- 변경된 줄 안에서 실제로 바뀐 부분. DiffChange 보다 밝게 만들면 그 위의
+  -- 문법색이 죽는다 (sorbet Constant 기준 4.03 → 3.18:1). 후보를 훑어봤지만
+  -- "문법색 유지 + DiffChange 와 밝기 구분" 을 동시에 만족하는 색은 없었다.
+  -- 그래서 밝기는 DiffChange 와 같게 두고 색조·bold·밑줄로 구분한다.
+  DiffText    = { bg = "#33240f", bold = true, underline = true },
 
-  -- diffview/fugitive 등에서 사용하는 하이라이트
-  DiffAdded   = { fg = "#98c379", bg = "#2a4a2a" },
-  DiffRemoved = { fg = "#e06c75", bg = "#4a2a2a" },
-  DiffChanged = { fg = "#e5c07b", bg = "#3a3a1a" },
+  -- 줄 단위 그룹 (filetype=diff, diffview 파일 패널, fugitive)
+  DiffAdded   = { fg = "#b7e88f", bg = "#1c2a1c" },
+  DiffRemoved = { fg = "#f4a2a2", bg = "#301c1c" },
+  DiffChanged = { fg = "#eccb8c", bg = "#2a2814" },
 }
 
 local function apply_overrides()
